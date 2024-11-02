@@ -1,16 +1,14 @@
-import java.util.Random;
+import java.util.Scanner;
 
 public class TicTacToe {
     private char[][] board;
     private char currentPlayer;
     private boolean gameEnded;
-    private int moveCount;
 
     public TicTacToe() {
         board = new char[3][3];
         currentPlayer = 'X';
         gameEnded = false;
-        moveCount = 0;
         initializeBoard();
     }
 
@@ -45,6 +43,29 @@ public class TicTacToe {
         return true;
     }
 
+    private boolean checkWin() {
+        for (int i = 0; i < 3; i++) {
+            if (board[i][0] != ' ' && board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
+                return true;
+            }
+        }
+
+        for (int j = 0; j < 3; j++) {
+            if (board[0][j] != ' ' && board[0][j] == board[1][j] && board[1][j] == board[2][j]) {
+                return true;
+            }
+        }
+
+        if (board[0][0] != ' ' && board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
+            return true;
+        }
+        if (board[0][2] != ' ' && board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean makeMove(int row, int col) {
         if (row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] == ' ') {
             board[row][col] = currentPlayer;
@@ -53,91 +74,38 @@ public class TicTacToe {
         return false;
     }
 
-    private void handleInvalidInput() {
-        System.out.println("Invalid input. Please enter numbers between 0 and 2.");
-    }
-
-    private void aiMove() {
-        Random random = new Random();
-        int row = random.nextInt(3);
-        int col = random.nextInt(3);
-        while (!makeMove(row, col)) {
-            row = random.nextInt(3);
-            col = random.nextInt(3);
-        }
-    }
-
-    private void resetGame() {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                board[i][j] = ' ';
-            }
-        }
-        moveCount = 0;
-        currentPlayer = 'X';
-        gameEnded = false;
-    }
-
     public void play() {
-        long startTime = System.currentTimeMillis();
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Welcome to Tic-Tac-Toe!");
+        System.out.println("Player 1: X");
+        System.out.println("Player 2: O");
 
         while (!gameEnded) {
             printBoard();
             System.out.println("Player " + currentPlayer + "'s turn");
-            
-            if (currentPlayer == 'X') {
-                System.out.print("Enter row (0-2): ");
-                int row = getValidInput();
-                System.out.print("Enter column (0-2): ");
-                int col = getValidInput();
-                
-                if (makeMove(row, col)) {
-                    moveCount++;
-                    
-                    if (moveCount > 9) {
-                        aiMove();
-                        moveCount++;
-                    }
+            System.out.print("Enter row (0-2): ");
+            int row = scanner.nextInt();
+            System.out.print("Enter column (0-2): ");
+            int col = scanner.nextInt();
+
+            if (makeMove(row, col)) {
+                if (checkWin()) {
+                    printBoard();
+                    System.out.println("Player " + currentPlayer + " wins!");
+                    gameEnded = true;
+                } else if (isBoardFull()) {
+                    printBoard();
+                    System.out.println("It's a draw!");
+                    gameEnded = true;
                 } else {
-                    handleInvalidInput();
+                    currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
                 }
             } else {
-                aiMove();
-                moveCount++;
-            }
-
-            if (System.currentTimeMillis() - startTime > 30000) { 
-                System.out.println("Time's up! Switching players.");
-                switchPlayers();
+                System.out.println("Invalid move! Try again.");
             }
         }
-
-        printBoard();
-        if (moveCount == 9) {
-            System.out.println("It's a draw!");
-        } else {
-            System.out.println("AI wins!");
-        }
-    }
-
-    private int getValidInput() {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            try {
-                int input = scanner.nextInt();
-                if (input >= 0 && input <= 2) {
-                    return input;
-                } else {
-                    throw new IllegalArgumentException();
-                }
-            } catch (IllegalArgumentException e) {
-                handleInvalidInput();
-            }
-        }
-    }
-
-    private void switchPlayers() {
-        currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+        scanner.close();
     }
 
     public static void main(String[] args) {
